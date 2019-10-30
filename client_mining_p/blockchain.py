@@ -8,7 +8,7 @@ class Blockchain(object):
         self.chain = []
         self.current_transactions = []
         # Create the genesis block
-        self.new_block(proof=100, previous_hash=1)
+        self.new_block(previous_hash=1, proof=100)
     def new_block(self, proof, previous_hash=None):
         """
         Create a new Block in the Blockchain
@@ -64,22 +64,7 @@ class Blockchain(object):
     @property
     def last_block(self):
         return self.chain[-1]
-    # def proof_of_work(self, block):
-    #     """
-    #     Simple Proof of Work Algorithm
-    #     Stringify the block and look for a proof.
-    #     Loop through possibilities, checking each one against `valid_proof`
-    #     in an effort to find a number that is a valid proof
-    #     :return: A valid proof for the provided block
-    #     """
-    #     # Proof is a SHA256 hash with 3 leading zeroes
-    #     block_string = json.dumps(block, sort_keys=True).encode()
-    #     proof = 0
-    #     while not self.valid_proof(block_string, proof):
-    #         proof += 1
-    #     guess = f'{block_string}{proof}'.encode()
-    #     guess_hash = hashlib.sha256(guess).hexdigest()
-    #     return proof
+    
     @staticmethod
     def valid_proof(block_string, proof):
         """
@@ -96,19 +81,36 @@ class Blockchain(object):
         guess_hash = hashlib.sha256(guess).hexdigest()
         # return True or False
         return guess_hash[:3] == "000000"
+
+
 # Instantiate our Node
 app = Flask(__name__)
+
 # Generate a globally unique address for this node
 node_identifier = str(uuid4()).replace('-', '')
+
 # Instantiate the Blockchain
+
 blockchain = Blockchain()
-@app.route('/mine', methods=['GET'])
+
+@app.route('/mine', methods=['POST'])
 def mine():
+    #pull the data out of the POST
+    data = request.get_json()
+
+    if not data['id'] or not data['proof']:
+        response = {
+            "message": "need proof and ID yoooo"
+        }
+        return jsonify(response), 400
     # Run the proof of work algorithm to get the next proof
-    proof = blockchain.proof_of_work(blockchain.last_block)
+    # proof = blockchain.proof_of_work(blockchain.last_block)
     # Forge the new Block by adding it to the chain with the proof
     previous_hash = blockchain.hash(blockchain.last_block)
-    block = blockchain.new_block(proof, previous_hash)
+    block = blockchain.new_block(data['proof'], previous_hash)
+
+    # do we need to add an individual_transaction????
+
     response = {
         'message': "New Block Forged",
         'index': block['index'],
@@ -129,7 +131,7 @@ def full_chain():
 def last_block():
     response: blockchain.last_block()
     return jsonify(response), 200
-    
+
 @app.route('/', methods=['GET'])
 def home():
     return "<h1>Welcome to blockchain!</h1>", 200
