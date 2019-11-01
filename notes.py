@@ -1,6 +1,3 @@
-# Blocks are JSON objects. We stringify them and then hash them
-import hash
+a = 
 
-a = hash("123")
-
-print(a)
+a.append("hello")

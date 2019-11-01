@@ -1,10 +1,9 @@
 import hashlib
 import requests
-​
+
 import sys
 import json
-​
-​
+
 def proof_of_work(block):
     """
     Simple Proof of Work Algorithm
@@ -19,10 +18,9 @@ def proof_of_work(block):
     proof = 0
     while valid_proof(block_string, proof) is False:
         proof += 1
-​
+
     return proof
-​
-​
+    
 def valid_proof(block_string, proof):
     """
     Validates the Proof:  Does hash(block_string, proof) contain 6
@@ -36,24 +34,39 @@ def valid_proof(block_string, proof):
     """
     guess = f'{block_string}{proof}'.encode()
     guess_hash = hashlib.sha256(guess).hexdigest()
-    return guess_hash[:6] == "000000"
-​
-​
+    return guess_hash[:5] == "00000"
+
+
 if __name__ == '__main__':
     # What is the server address? IE `python3 miner.py https://server.com/api/`
+    print(sys.argv)
     if len(sys.argv) > 1:
         node = sys.argv[1]
     else:
         node = "http://localhost:5000"
-​
+
     # Load ID
-    f = open("my_id.txt", "r")
-    id = f.read()
-    print("ID is", id)
-    f.close()
-​
+    # f = open("my_id.txt", "r")
+    # id = f.read()
+    # print("ID is", id)
+    # f.close()
+    rg = requests.get(url=node + "/getid")
+    # Handle non-json response
+    try:
+        id_data = rg.json()
+        print(id_data)
+        print(id_data['UserID']['UserID'])
+    
+    except ValueError:
+        print("Error:  Non-json response")
+        print("Response returned:")
+        print(rg)
+    id = id_data['UserID']['UserID']
+
+    
+
     coins_mined = 0
-​
+
     # Run forever until interrupted
     while True:
         r = requests.get(url=node + "/last_block")
@@ -65,17 +78,17 @@ if __name__ == '__main__':
             print("Response returned:")
             print(r)
             break
-​
+
         # TODO: Get the block from `data` and use it to look for a new proof
         new_proof = proof_of_work(data.get('last_block'))
-​
+
         # When found, POST it to the server {"proof": new_proof, "id": id}
         post_data = {"proof": new_proof, "id": id}
-​
+
         r = requests.post(url=node + "/mine", json=post_data)
         print(r)
         data = r.json()
-​
+
         # TODO: If the server responds with a 'message' 'New Block Forged'
         # add 1 to the number of coins mined and print it.  Otherwise,
         # print the message from the server.
