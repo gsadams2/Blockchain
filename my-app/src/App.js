@@ -57,7 +57,7 @@ hello = [{
 
 render() {
   console.log(this.state.chain.chain)
-  console.log(this.hello[1])
+  console.log(this.hello)
 
   return (
     <div className="App">
@@ -66,7 +66,7 @@ render() {
           UserID:
           <input type="text" name="UserID" value={this.state.UserID} onChange={this.handleChange} h />
         </label>
-        {/* <input type="submit" value="submit" /> */}
+        
       </form>
 
       {/* <div>
@@ -75,13 +75,15 @@ render() {
     )}
     </div> */}
 
-    {/* <div>
-    {this.state.chain.chain.map(data => 
-      <p>{data.index}</p>
-    )}
-    </div>    */}
 
-
+    <div>
+      <h1>
+    {this.state.chain.length && this.state.chain.chain.map(data => 
+     data.transactions.map( transaction_data =>  transaction_data.amount).reduce((total, b) => total + b, 0)
+     
+    ).reduce((total, b) => total + b, 0)}
+    </h1>
+    </div>   
 
     </div>
   );
